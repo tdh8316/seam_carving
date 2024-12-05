@@ -132,6 +132,44 @@ class CarvableImage(object):
             self.energy_function,
             self.seam_function,
         )
+        
+        
+    def _detect_faces(self, image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)):
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=scaleFactor, minNeighbors=minNeighbors, minSize=minSize)
+        return faces
+
+
+    def _protect_faces_in_energy_map(self, energy, faces):
+        for x, y, w, h in faces:
+            energy[y : y + h, x : x + w] = np.max(energy) * 10
+        return energy
+
+        
+    def seam_carve_with_mask(
+        self,
+        num_seams: int,
+        show_progress: bool = False,
+    ) -> "CarvableImage":
+        carved: np.ndarray = self.img.mat.copy()
+
+        it = trange(num_seams, ncols=100) if show_progress else range(num_seams)
+
+        for _ in it:
+            mask = self._detect_faces(carved)
+            energy_map = self.energy_function(carved)
+            energy_map = self._protect_faces_in_energy_map(energy_map, mask)
+            seam = self.seam_function(energy_map)
+            carved = carve_seam(carved, seam)
+
+        return CarvableImage(
+            Image(carved),
+            self.energy_function,
+            self.seam_function,
+        )
+        
+    
 
     def seam_carve_enlarge(
         self,

@@ -406,12 +406,12 @@ class MainWindow(QMainWindow):
             carvable_image.seam_function = SeamFinder.find_seam
 
             for i in range(1, num_v_seams + 1):
-                carvable_image.seam_carve(1)  # Carve one seam at a time
+                carvable_image.seam_carve_with_mask(1)  # Carve one seam at a time
                 self.progress_bar.setValue(
                     int((i / num_v_seams) * 50)
                 )  # Update progress bar for vertical seams
 
-            carved_data = carvable_image.seam_carve(num_v_seams).img.mat
+            carved_data = carvable_image.seam_carve_with_mask(num_v_seams).img.mat
             self.vertical_save = Image(carved_data)
 
         except Exception as e:
@@ -427,7 +427,7 @@ class MainWindow(QMainWindow):
 
             # Perform seam carving one seam at a time and update the progress bar
             for i in range(1, num_h_seams + 1):
-                carvable_image_hor.seam_carve(1)  # Carve one seam at a time
+                carvable_image_hor.seam_carve_with_mask(1)  # Carve one seam at a time
                 self.progress_bar.setValue(
                     50 + int((i / num_h_seams) * 50)
                 )  # Update progress bar for horizontal seams
